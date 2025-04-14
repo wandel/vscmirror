@@ -33,9 +33,8 @@ func NewServeMux() *http.ServeMux {
 	mux.HandleFunc("GET /extensions/chat.json", ChatHandler)
 	mux.HandleFunc("POST /_apis/public/gallery/extensionquery", GalleryQueryHandler)
 	mux.HandleFunc("GET /_apis/public/gallery/vscode/{publisher}/{extension}/latest", GalleryLatestHandler)
-	// mux.HandleFunc("GET /_gallery/{publisher}/{extension}/latest", AltGalleryLatestHandler)
+	mux.HandleFunc("GET /_gallery/{publisher}/{extension}/latest", GalleryLatestHandler)
 	mux.HandleFunc("GET vscode.cdn.local/extensions/", DownloadExtensionHandler)
-	// https://vscode.cdn.local/extensions/dongli/python-preview/0.0.4/Microsoft.VisualStudio.Services.Icons.Default?targetPlatform=universal
 	// Handles the
 	mux.HandleFunc("OPTIONS /", OptionsHandler)
 
@@ -186,13 +185,12 @@ func GalleryLatestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for j, version := range extension.Versions {
-		assetURI := DOMAIN + path.Join("extensions", extension.Publisher.PublisherName, extension.ExtensionName, version.Version)
+		uri := path.Join("extensions", extension.Publisher.PublisherName+"."+extension.ExtensionName, version.Version, version.TargetPlatform)
 		for k, file := range version.Files {
-			source := strings.Replace(file.Source, version.AssetURI, assetURI, 1)
-			extension.Versions[j].Files[k].Source = source
+			extension.Versions[j].Files[k].Source = DOMAIN + path.Join(uri, file.AssetType)
 		}
-		extension.Versions[j].FallbackAssetURI = version.AssetURI
-		extension.Versions[j].AssetURI = assetURI
+		extension.Versions[j].AssetURI = DOMAIN + uri
+		extension.Versions[j].FallbackAssetURI = DOMAIN + uri
 	}
 
 	data, err := json.Marshal(extension)
@@ -295,12 +293,12 @@ func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
 	for i, extension := range result {
 		for j, version := range extension.Versions {
 			identity := extension.Publisher.PublisherName + "." + extension.ExtensionName
-			uri := DOMAIN + path.Join("extensions", identity, version.Version, version.TargetPlatform)
+			uri := path.Join("extensions", identity, version.Version, version.TargetPlatform)
 			for k, file := range version.Files {
-				result[i].Versions[j].Files[k].Source = path.Join(uri, file.AssetType)
+				result[i].Versions[j].Files[k].Source = DOMAIN + path.Join(uri, file.AssetType)
 			}
-			result[i].Versions[j].AssetURI = uri
-			result[i].Versions[j].FallbackAssetURI = uri
+			result[i].Versions[j].AssetURI = DOMAIN + uri
+			result[i].Versions[j].FallbackAssetURI = DOMAIN + uri
 		}
 	}
 
