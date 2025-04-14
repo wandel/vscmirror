@@ -4,7 +4,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/wandel/vscmirror/client"
+	"github.com/wandel/vscmirror/marketplace"
 )
 
 var PLATFORMS = []string{"win32", "linux", "linux-deb", "linux-rpm", "darwin", "linux-snap", "server-linux", "server-linux-legacy", "cli-alpine"}
@@ -13,7 +13,7 @@ var BUILD_TYPES = []string{"", "archive", "user"}
 var QUALITY = []string{"stable", "insider"}
 
 type ProductInfoEx struct {
-	client.ProductInfo
+	marketplace.ProductInfo
 	Identity         string `json:"identity"`
 	Platform         string `json:"platform"`
 	Architecture     string `json:"architecture"`

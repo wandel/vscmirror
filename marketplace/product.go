@@ -1,4 +1,4 @@
-package client
+package marketplace
 
 type ProductInfo struct {
 	Name               string       `json:"name"`

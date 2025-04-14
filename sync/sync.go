@@ -10,8 +10,8 @@ import (
 	"path"
 	"path/filepath"
 
-	marketplace "github.com/wandel/vscmirror/client"
 	"github.com/wandel/vscmirror/common"
+	"github.com/wandel/vscmirror/marketplace"
 )
 
 var ARTIFACTS = os.DirFS("D:\\vscmirror")

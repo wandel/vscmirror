@@ -12,7 +12,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	marketplace "github.com/wandel/vscmirror/client"
+	"github.com/wandel/vscmirror/marketplace"
 	"github.com/wandel/vscmirror/server"
 	"github.com/wandel/vscmirror/sync"
 )

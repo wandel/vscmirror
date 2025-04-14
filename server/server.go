@@ -12,8 +12,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/wandel/vscmirror/client"
 	"github.com/wandel/vscmirror/common"
+	"github.com/wandel/vscmirror/marketplace"
 )
 
 var ARTIFACTS = os.DirFS("D:\\vscmirror")
@@ -145,15 +145,15 @@ func MaliciousHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFileFS(w, r, ARTIFACTS, "malicious.json")
 }
 
-func LoadExtensions(dst *[]client.Extension) error {
+func LoadExtensions(dst *[]marketplace.Extension) error {
 	matches, err := fs.Glob(ARTIFACTS, "extensions/*/latest.json")
 	if err != nil {
 		return fmt.Errorf("failed to glob extensions: %w", err)
 	}
 
-	var extensions []client.Extension
+	var extensions []marketplace.Extension
 	for _, match := range matches {
-		var extension client.Extension
+		var extension marketplace.Extension
 		if err := common.LoadJsonFS(ARTIFACTS, match, &extension); err != nil {
 			slog.Error("failed to load extension metadata", "path", match, "error", err)
 			continue
@@ -179,7 +179,7 @@ func GalleryLatestHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer f.Close()
 
-	var extension client.Extension
+	var extension marketplace.Extension
 	if err := json.NewDecoder(f).Decode(&extension); err != nil {
 		slog.Error("failed to decode json", "path", filepath, "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -214,7 +214,7 @@ func GalleryLatestHandler(w http.ResponseWriter, r *http.Request) {
 func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("access-control-allow-origin", "*")
 	slog.Info("request", "handler", "GalleryQueryHandler", "remote", r.RemoteAddr, "url", r.URL.String())
-	var request client.QueryRequest
+	var request marketplace.QueryRequest
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		slog.Error("failed to parse query request", "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -224,7 +224,7 @@ func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
 	if len(request.Filters) == 0 {
 		http.Error(w, "no filters specified", http.StatusBadRequest)
 		return
-	} else if request.Flags == client.QueryFlagNoneDefined {
+	} else if request.Flags == marketplace.QueryFlagNoneDefined {
 		http.Error(w, "no flags specified", http.StatusBadRequest)
 		return
 	}
@@ -236,7 +236,7 @@ func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var extensions []client.Extension
+	var extensions []marketplace.Extension
 	if err := LoadExtensions(&extensions); err != nil {
 		slog.Error("failed to load extensions", "error", err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -245,7 +245,7 @@ func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
 
 	filter := request.Filters[0]
 
-	result := []client.Extension{} // initialize so we dont get a null in the json later
+	result := []marketplace.Extension{} // initialize so we dont get a null in the json later
 	for _, extension := range extensions {
 		if filter.Matches(extension) {
 			slog.Info("selected extension", "extension", extension.ExtensionName)
@@ -255,21 +255,21 @@ func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
 
 	slices.SortFunc(result, filter.Compare)
 
-	var reverse bool = filter.SortOrder == client.SortOrderAscending
+	var reverse bool = filter.SortOrder == marketplace.SortOrderAscending
 	switch filter.SortBy {
-	case client.SortByNoneOrRelevance:
-	case client.SortByLastUpdatedDate:
+	case marketplace.SortByNoneOrRelevance:
+	case marketplace.SortByLastUpdatedDate:
 		reverse = !reverse
-	case client.SortByTitle:
+	case marketplace.SortByTitle:
 		reverse = !reverse
-	case client.SortByPublisherName:
-	case client.SortByInstallCount:
+	case marketplace.SortByPublisherName:
+	case marketplace.SortByInstallCount:
 		reverse = !reverse
-	case client.SortByPublishedDate:
+	case marketplace.SortByPublishedDate:
 		reverse = !reverse
-	case client.SortByAverageRating:
+	case marketplace.SortByAverageRating:
 		reverse = !reverse
-	case client.SortByWeightedRating:
+	case marketplace.SortByWeightedRating:
 		reverse = !reverse
 	default:
 	}
@@ -306,43 +306,43 @@ func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var categories []client.MetadataItem
+	var categories []marketplace.MetadataItem
 	for name, count := range categoriesMap {
-		categories = append(categories, client.MetadataItem{
+		categories = append(categories, marketplace.MetadataItem{
 			Name:  name,
 			Count: count,
 		})
 	}
 
-	var targets []client.MetadataItem
+	var targets []marketplace.MetadataItem
 	for name, count := range targetsMap {
-		targets = append(targets, client.MetadataItem{
+		targets = append(targets, marketplace.MetadataItem{
 			Name:  name,
 			Count: count,
 		})
 	}
 
-	totalCount := client.MetadataItem{
+	totalCount := marketplace.MetadataItem{
 		Name:  "TotalCount",
 		Count: len(result),
 	}
 
 	// pageNumber starts at 1, not 0 so we correct it here.
 	result = paginate(result, filter.PageNumber-1, filter.PageSize)
-	response := client.QueryResponse{
+	response := marketplace.QueryResponse{
 		Extensions: result,
-		ResultMetadata: []client.QueryResultMetadata{
-			client.QueryResultMetadata{
+		ResultMetadata: []marketplace.QueryResultMetadata{
+			marketplace.QueryResultMetadata{
 				MetadataType: "ResultCount",
-				MetadataItems: []client.MetadataItem{
+				MetadataItems: []marketplace.MetadataItem{
 					totalCount,
 				},
 			},
-			client.QueryResultMetadata{
+			marketplace.QueryResultMetadata{
 				MetadataType:  "Categories",
 				MetadataItems: categories,
 			},
-			client.QueryResultMetadata{
+			marketplace.QueryResultMetadata{
 				MetadataType:  "TargetPlatforms",
 				MetadataItems: targets,
 			},
@@ -350,9 +350,9 @@ func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	wrapper := struct {
-		Results []client.QueryResponse `json:"results"`
+		Results []marketplace.QueryResponse `json:"results"`
 	}{
-		Results: []client.QueryResponse{response},
+		Results: []marketplace.QueryResponse{response},
 	}
 
 	data, err := json.Marshal(wrapper)
