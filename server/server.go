@@ -253,28 +253,41 @@ func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	slices.SortFunc(result, filter.Compare)
-
-	var reverse bool = filter.SortOrder == marketplace.SortOrderAscending
-	switch filter.SortBy {
-	case marketplace.SortByNoneOrRelevance:
-	case marketplace.SortByLastUpdatedDate:
-		reverse = !reverse
-	case marketplace.SortByTitle:
-		reverse = !reverse
-	case marketplace.SortByPublisherName:
-	case marketplace.SortByInstallCount:
-		reverse = !reverse
-	case marketplace.SortByPublishedDate:
-		reverse = !reverse
-	case marketplace.SortByAverageRating:
-		reverse = !reverse
-	case marketplace.SortByWeightedRating:
-		reverse = !reverse
-	default:
+	if filter.SortOrder == marketplace.SortOrderDefault {
+		switch filter.SortBy {
+		case marketplace.SortByRelevance:
+			filter.SortOrder = marketplace.SortOrderDescending
+		case marketplace.SortByLastUpdatedDate:
+			filter.SortOrder = marketplace.SortOrderDescending
+		case marketplace.SortByTitle:
+			filter.SortOrder = marketplace.SortOrderAscending
+		case marketplace.SortByPublisher:
+			filter.SortOrder = marketplace.SortOrderAscending
+		case marketplace.SortByInstallCount:
+			filter.SortOrder = marketplace.SortOrderDescending
+		case marketplace.SortByPublishedDate:
+			filter.SortOrder = marketplace.SortOrderDescending
+		case marketplace.SortByAverageRating:
+			filter.SortOrder = marketplace.SortOrderDescending
+		case marketplace.SortByTrendingDaily:
+			filter.SortOrder = marketplace.SortOrderDescending
+		case marketplace.SortByTrendingWeekly:
+			filter.SortOrder = marketplace.SortOrderDescending
+		case marketplace.SortByTrendingMonthly:
+			filter.SortOrder = marketplace.SortOrderDescending
+		case marketplace.SortByReleaseDate:
+			filter.SortOrder = marketplace.SortOrderDescending
+		case marketplace.SortByAuthor:
+			filter.SortOrder = marketplace.SortOrderAscending
+		case marketplace.SortByWeightedRating:
+			filter.SortOrder = marketplace.SortOrderDescending
+		default:
+			filter.SortOrder = marketplace.SortOrderAscending
+		}
 	}
 
-	if !reverse {
+	slices.SortFunc(result, filter.Compare)
+	if filter.SortOrder == marketplace.SortOrderDescending {
 		slices.Reverse(result)
 	}
 

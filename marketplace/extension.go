@@ -1,6 +1,9 @@
 package marketplace
 
-import "strings"
+import (
+	"strings"
+	"time"
+)
 
 type Extension struct {
 	Publisher        Publisher            `json:"publisher"`
@@ -8,9 +11,9 @@ type Extension struct {
 	ExtensionName    string               `json:"extensionName"`
 	DisplayName      string               `json:"displayName"`
 	Flags            string               `json:"flags"`
-	LastUpdated      string               `json:"lastUpdated"`
-	PublishedDate    string               `json:"publishedDate"`
-	ReleaseDate      string               `json:"releaseDate"`
+	LastUpdated      time.Time            `json:"lastUpdated"`
+	PublishedDate    time.Time            `json:"publishedDate"`
+	ReleaseDate      time.Time            `json:"releaseDate"`
 	ShortDescription string               `json:"shortDescription"`
 	Versions         []ExtensionVersion   `json:"versions"`
 	Categories       []string             `json:"categories"`
@@ -50,7 +53,7 @@ type ExtensionVersion struct {
 	Version          string              `json:"version"`
 	TargetPlatform   string              `json:"targetPlatform,omitempty"`
 	Flags            string              `json:"flags"`
-	LastUpdated      string              `json:"lastUpdated"`
+	LastUpdated      time.Time           `json:"lastUpdated"`
 	Files            []ExtensionFile     `json:"files"`
 	Properties       []ExtensionProperty `json:"properties"`
 	AssetURI         string              `json:"assetUri"`

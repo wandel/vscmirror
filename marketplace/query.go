@@ -54,14 +54,32 @@ const (
 type SortBy int
 
 const (
-	SortByNoneOrRelevance SortBy = 0
-	SortByLastUpdatedDate SortBy = 1
-	SortByTitle           SortBy = 2
-	SortByPublisherName   SortBy = 3
-	SortByInstallCount    SortBy = 4
-	SortByPublishedDate   SortBy = 5
-	SortByAverageRating   SortBy = 6
-	SortByWeightedRating  SortBy = 12
+	// The results will be sorted by relevance in case search query is given, if no search query resutls will be provided as is
+	SortByRelevance = 0
+	// The results will be sorted as per Last Updated date of the extensions with recently updated at the top
+	SortByLastUpdatedDate = 1
+	// Results will be sorted Alphabetically as per the title of the extension
+	SortByTitle = 2
+	// Results will be sorted Alphabetically as per Publisher title
+	SortByPublisher = 3
+	// Results will be sorted by Install Count
+	SortByInstallCount = 4
+	// The results will be sorted as per Published date of the extensions
+	SortByPublishedDate = 5
+	// The results will be sorted as per Average ratings of the extensions
+	SortByAverageRating = 6
+	// The results will be sorted as per Trending Daily Score of the extensions
+	SortByTrendingDaily = 7
+	// The results will be sorted as per Trending weekly Score of the extensions
+	SortByTrendingWeekly = 8
+	// The results will be sorted as per Trending monthly Score of the extensions
+	SortByTrendingMonthly = 9
+	// The results will be sorted as per ReleaseDate of the extensions (date on which the extension first went public)
+	SortByReleaseDate = 10
+	// The results will be sorted as per Author defined in the VSix/Metadata. If not defined, publisher name is used This is specifically needed by VS IDE, other (new and old) clients are not encouraged to use this
+	SortByAuthor = 11
+	// The results will be sorted as per Weighted Rating of the extension.
+	SortByWeightedRating = 12
 )
 
 type SortOrder int
@@ -186,20 +204,24 @@ func (filter *QueryFilter) Matches(extension Extension) bool {
 
 func (filter QueryFilter) Compare(a, b Extension) int {
 	switch filter.SortBy {
-	case SortByNoneOrRelevance:
+	case SortByRelevance:
 		return CompareStatistic(a, b, "install") // TODO: Implement relevance sorting
 	case SortByLastUpdatedDate:
-		return strings.Compare(a.LastUpdated, b.LastUpdated)
+		return a.LastUpdated.Compare(b.LastUpdated)
 	case SortByTitle:
 		return strings.Compare(a.DisplayName, b.DisplayName)
-	case SortByPublisherName:
+	case SortByPublisher:
 		return strings.Compare(a.Publisher.PublisherName, b.Publisher.PublisherName)
 	case SortByInstallCount:
 		return CompareStatistic(a, b, "install")
 	case SortByPublishedDate:
-		return strings.Compare(a.PublishedDate, b.PublishedDate)
+		return a.PublishedDate.Compare(b.PublishedDate)
 	case SortByAverageRating:
 		return CompareStatistic(a, b, "averageRating")
+	case SortByReleaseDate:
+		return a.ReleaseDate.Compare(b.ReleaseDate)
+	case SortByAuthor:
+		return strings.Compare(a.Publisher.PublisherName, b.Publisher.PublisherName)
 	case SortByWeightedRating:
 		return CompareStatistic(a, b, "weightedRating")
 	default:
