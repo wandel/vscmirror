@@ -112,7 +112,7 @@ func (c *Client) GetExtensionsByName(ctx context.Context, names []string) ([]Ext
 func (c *Client) GetExtensionsPaged(ctx context.Context, pageSize int, pageNumber int) ([]Extension, error) {
 	criteria := []FilterCriteria{
 		FilterCriteria{
-			FilterType: FilterTypeInstalltionTarget,
+			FilterType: FilterTypeInstallationTarget,
 			Value:      "Microsoft.VisualStudio.Code",
 		},
 	}

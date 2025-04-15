@@ -170,17 +170,17 @@ func SearchAction(ctx context.Context, cmd *cli.Command) error {
 		})
 	}
 
+	criteria = append(criteria, marketplace.FilterCriteria{
+		FilterType: marketplace.FilterTypeInstallationTarget,
+		Value:      "Microsoft.VisualStudio.Code",
+	})
+
 	if !cmd.Bool("unpublished") {
 		criteria = append(criteria, marketplace.FilterCriteria{
 			FilterType: marketplace.FilterTypeExcludeWithFlags,
 			Value:      "4096",
 		})
 	}
-
-	criteria = append(criteria, marketplace.FilterCriteria{
-		FilterType: marketplace.FilterTypeInstalltionTarget,
-		Value:      "Microsoft.VisualStudio.Code",
-	})
 
 	var flags marketplace.QueryFlag
 	flags |= marketplace.QueryFlagIncludeFiles

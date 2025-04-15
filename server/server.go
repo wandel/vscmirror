@@ -206,7 +206,6 @@ func GalleryLatestHandler(w http.ResponseWriter, r *http.Request) {
 		slog.Error("failed to write query response", "error", err)
 		return
 	}
-
 }
 
 func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
@@ -222,7 +221,7 @@ func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
 	if len(request.Filters) == 0 {
 		http.Error(w, "no filters specified", http.StatusBadRequest)
 		return
-	} else if request.Flags == marketplace.QueryFlagNoneDefined {
+	} else if request.Flags == marketplace.QueryFlagNone {
 		http.Error(w, "no flags specified", http.StatusBadRequest)
 		return
 	}
@@ -243,10 +242,14 @@ func GalleryQueryHandler(w http.ResponseWriter, r *http.Request) {
 
 	filter := request.Filters[0]
 
+	if !marketplace.ShouldSkipFirstStageFilters(filter) {
+		extensions = filter.FilterFirstStage(extensions)
+	}
+	extensions = filter.FilterSecondStage(extensions)
+
 	result := []marketplace.Extension{} // initialize so we dont get a null in the json later
 	for _, extension := range extensions {
 		if filter.Matches(extension) {
-			slog.Info("selected extension", "extension", extension.ExtensionName)
 			result = append(result, extension)
 		}
 	}
